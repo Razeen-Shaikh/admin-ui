@@ -1,0 +1,66 @@
+<div class="container">
+    <div>
+        <label for="search">Search</label>
+        <input id="search" type="text" [(ngModel)]="filterValue" (input)="applyFilter()" placeholder="Type to filter">
+    </div>
+
+    <div *ngIf="filteredUsers && filteredUsers.length > 0">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" (change)="selectAll($event)">
+                    </th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of paginatedUsers" [ngClass]="{ 'selected': user.isSelected }">
+                    <td>
+                        <input type="checkbox" [(ngModel)]="user.isSelected" (click)="$event.stopPropagation()" />
+                    </td>
+                    <td>
+                        <span *ngIf="!user.isEditing">{{ user.name }}</span>
+                        <input *ngIf="user.isEditing" [(ngModel)]="user.name" />
+                    </td>
+                    <td>
+                        <span *ngIf="!user.isEditing">{{ user.email }}</span>
+                        <input *ngIf="user.isEditing" [(ngModel)]="user.email" />
+                    </td>
+                    <td>
+                        <span *ngIf="!user.isEditing">{{ user.role }}</span>
+                        <input *ngIf="user.isEditing" [(ngModel)]="user.role" />
+                    </td>
+                    <td>
+                        <button class="edit-button" *ngIf="!user.isEditing" title="edit"
+                            (click)="editUser(user)"><mat-icon>edit</mat-icon></button>
+                        <button class="cancel-button cancel-hover" *ngIf="user.isEditing" title="cancel"
+                            (click)="cancelEdit(user)"><mat-icon>cancel</mat-icon></button>
+                        <button class="save-button" *ngIf="user.isEditing" title="save"
+                            (click)="saveChanges(user)"><mat-icon>save</mat-icon></button>
+                        <button class="delete-button" (click)="deleteUser(user)"
+                            title="delete"><mat-icon>delete</mat-icon></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button class="pagination-button" (click)="goToFirstPage()"><mat-icon>first_page</mat-icon></button>
+            <button class="pagination-button" (click)="goToPreviousPage()"><mat-icon>chevron_left</mat-icon></button>
+            <ng-container *ngFor="let page of getPageNumbers()">
+                <button class="pagination-button" [class.current-page]="page === currentPage" (click)="goToPage(page)">
+                    {{ page }}
+                </button>
+            </ng-container>
+            <button class="pagination-button" (click)="goToNextPage()"><mat-icon>chevron_right</mat-icon></button>
+            <button class="pagination-button" (click)="goToLastPage()"><mat-icon>last_page</mat-icon></button>
+        </div>
+    </div>
+
+    <p *ngIf="!(filteredUsers && filteredUsers.length > 0)">No users found.</p>
+    <button *ngIf="hasSelectedUsers()" (click)="deleteSelected()">Delete Selected</button>
+</div>
