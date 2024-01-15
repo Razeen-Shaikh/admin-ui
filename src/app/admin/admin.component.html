@@ -1,9 +1,6 @@
 <div class="container">
-    <div>
-        <label for="search">Search</label>
-        <input id="search" type="text" [(ngModel)]="filterValue" (input)="applyFilter()" placeholder="Type to filter">
-    </div>
-
+    <input id="searchInput" type="text" class="search-icon" [(ngModel)]="filterValue" (input)="applyFilter()"
+        placeholder="Search by name, email, role">
     <div *ngIf="filteredUsers && filteredUsers.length > 0">
         <table class="user-table">
             <thead>
@@ -18,7 +15,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let user of paginatedUsers" [ngClass]="{ 'selected': user.isSelected }">
+                <tr *ngFor="let user of filteredUsers" [ngClass]="{ 'selected': user.isSelected }">
                     <td>
                         <input type="checkbox" [(ngModel)]="user.isSelected" (click)="$event.stopPropagation()" />
                     </td>
@@ -35,29 +32,50 @@
                         <input *ngIf="user.isEditing" [(ngModel)]="user.role" />
                     </td>
                     <td>
-                        <button class="edit-button" *ngIf="!user.isEditing" title="edit"
-                            (click)="editUser(user)"><mat-icon>edit</mat-icon></button>
+                        <button class="edit-button" *ngIf="!user.isEditing" title="edit" (click)="editUser(user)">
+                            <img src="assets/pencil-solid.svg">
+                        </button>
                         <button class="cancel-button cancel-hover" *ngIf="user.isEditing" title="cancel"
-                            (click)="cancelEdit(user)"><mat-icon>cancel</mat-icon></button>
-                        <button class="save-button" *ngIf="user.isEditing" title="save"
-                            (click)="saveChanges(user)"><mat-icon>save</mat-icon></button>
-                        <button class="delete-button" (click)="deleteUser(user)"
-                            title="delete"><mat-icon>delete</mat-icon></button>
+                            (click)="cancelEdit(user)">
+                            <img src="assets/xmark-solid.svg">
+                        </button>
+                        <button class="save-button" *ngIf="user.isEditing" title="save" (click)="saveChanges(user)">
+                            <img src="assets/floppy-disk-solid.svg">
+                        </button>
+                        <button class="delete-button" (click)="deleteUser(user)" title="delete">
+                            <img src="assets/trash-solid.svg">
+                        </button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <div class="pagination">
-            <button class="pagination-button" (click)="goToFirstPage()"><mat-icon>first_page</mat-icon></button>
-            <button class="pagination-button" (click)="goToPreviousPage()"><mat-icon>chevron_left</mat-icon></button>
-            <ng-container *ngFor="let page of getPageNumbers()">
-                <button class="pagination-button" [class.current-page]="page === currentPage" (click)="goToPage(page)">
-                    {{ page }}
-                </button>
-            </ng-container>
-            <button class="pagination-button" (click)="goToNextPage()"><mat-icon>chevron_right</mat-icon></button>
-            <button class="pagination-button" (click)="goToLastPage()"><mat-icon>last_page</mat-icon></button>
+            <button [disabled]="currentPage === 1"
+                class='{{currentPage === 1 ? "pagination-button disabled" : "pagination-button"}}'
+                (click)="goToFirstPage()">
+                <img src="assets/angles-left-solid.svg">
+            </button>
+            <button [disabled]="currentPage === 1"
+                class='{{currentPage === 1 ? "pagination-button disabled" : "pagination-button"}}'
+                (click)="goToPreviousPage()">
+                <img src="assets/angle-left-solid.svg">
+            </button>
+            <button *ngFor="let page of getPageNumbers()"
+                class='{{currentPage === page ? "pagination-button current-page" : "pagination-button"}}'
+                [class.current-page]="page === currentPage" (click)="goToPage(page)">
+                {{ page }}
+            </button>
+            <button [disabled]="currentPage === totalPages"
+                class='{{currentPage === totalPages ? "pagination-button disabled" : "pagination-button"}}'
+                (click)="goToNextPage()">
+                <img src="assets/angle-right-solid.svg">
+            </button>
+            <button [disabled]="currentPage === totalPages"
+                class='{{currentPage === totalPages ? "pagination-button disabled" : "pagination-button"}}'
+                (click)="goToLastPage()">
+                <img src="assets/angles-right-solid.svg">
+            </button>
         </div>
     </div>
 

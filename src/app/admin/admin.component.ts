@@ -25,11 +25,11 @@ export class AdminComponent {
 
   // Pagination settings
   pageSize: number = 10;
-  totalPages: number = 1;
+  totalPages: number = 0;
   itemsPerPage: number = 10;
   currentPage: number = 1;
   filterValue: string = '';
-  temp: any = null;
+  isEditing: any = null;
 
   constructor(private http: HttpClient) {}
 
@@ -51,49 +51,29 @@ export class AdminComponent {
       });
   }
 
-  get paginatedUsers(): User[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    return this.filteredUsers.slice(startIndex, endIndex);
-  }
-
   applyFilter(): void {
-    const lowerCaseFilterValue = this.filterValue.toLowerCase();
-
-    // Filter users based on search
-    if (this.users) {
-      this.filteredUsers = this.users.filter(
-        (user) =>
-          (user.name &&
-            user.name.toLowerCase().includes(lowerCaseFilterValue)) ||
-          (user.email &&
-            user.email.toLowerCase().includes(lowerCaseFilterValue)) ||
-          (user.role && user.role.toLowerCase().includes(lowerCaseFilterValue))
-      );
-      console.log(this.filteredUsers);
-      this.currentPage = 1; // Reset pagination
-      this.updateFilteredUsers(); // Update filtered users
-    }
+    this.currentPage = 1;
+    this.updateFilteredUsers();
   }
 
   editUser(user: User): void {
     user.isEditing = true;
-    this.temp = { ...user };
+    this.isEditing = { ...user };
   }
 
   saveChanges(user: User): void {
     user.isEditing = false;
-    this.temp = null;
+    this.isEditing = null;
     this.updateFilteredUsers();
   }
 
   cancelEdit(user: User): void {
     user.isEditing = false;
-    if (this.temp !== null) {
-      user.name = this.temp.name;
-      user.email = this.temp.email;
-      user.role = this.temp.role;
-      this.temp = null;
+    if (this.isEditing !== null) {
+      user.name = this.isEditing.name;
+      user.email = this.isEditing.email;
+      user.role = this.isEditing.role;
+      this.isEditing = null;
     }
     this.updateFilteredUsers();
   }
@@ -124,15 +104,14 @@ export class AdminComponent {
   }
 
   updatePagination(): void {
-    const totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
+    const totalPages = Math.ceil(this.users.length / this.itemsPerPage);
     this.currentPage = Math.min(this.currentPage, totalPages);
   }
 
   getPageNumbers(): number[] {
-    const totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
+    const totalPages = Math.ceil(this.users.length / this.itemsPerPage);
+    const numPagesToShow = Math.ceil(this.users.length / this.itemsPerPage);
     const pageNumbers: number[] = [];
-
-    const numPagesToShow = 5;
 
     let start = Math.max(1, this.currentPage - Math.floor(numPagesToShow / 2));
     let end = Math.min(totalPages, start + numPagesToShow - 1);
@@ -148,34 +127,50 @@ export class AdminComponent {
 
   goToPage(page: number): void {
     this.currentPage = page;
+    this.updateFilteredUsers();
   }
 
   goToFirstPage(): void {
     this.currentPage = 1;
+    this.updateFilteredUsers();
   }
 
   goToPreviousPage(): void {
     this.currentPage = Math.max(this.currentPage - 1, 1);
+    this.updateFilteredUsers();
   }
 
   goToNextPage(): void {
-    const totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
-    this.currentPage = Math.min(this.currentPage + 1, totalPages);
+    this.currentPage = Math.min(this.currentPage + 1, this.totalPages);
+    console.log(this.currentPage);
+    this.updateFilteredUsers();
   }
 
   goToLastPage(): void {
-    const totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
-    this.currentPage = totalPages;
+    this.currentPage = this.totalPages;
+    this.updateFilteredUsers();
   }
 
   private updateFilteredUsers(): void {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.filteredUsers = this.filteredUsers.slice(startIndex, endIndex);
+    if (this.filterValue.trim() !== '') {
+      this.filteredUsers = this.users
+        .filter((user) =>
+          Object.values(user).some(
+            (value) =>
+              typeof value === 'string' &&
+              value.toLowerCase().includes(this.filterValue.toLowerCase())
+          )
+        )
+        .slice(startIndex, endIndex);
+    } else {
+      this.filteredUsers = this.users.slice(startIndex, endIndex);
+    }
     this.updatePagination();
   }
   private calculateTotalPages(): void {
-    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
+    this.totalPages = Math.ceil(this.users.length / this.pageSize);
   }
 
   private handleError(error: any): Observable<never> {
